@@ -1,0 +1,11 @@
+variant_id,variant_angle,role,date_sent,connections_sent,connections_accepted,connection_accept_rate,messages_sent,replies_received,reply_rate,positive_replies,positive_reply_rate,calls_booked,notes
+1,skills match,,,,,,,,,,,,
+2,company hook,,,,,,,,,,,,
+3,mutual interest / saw your profile,,,,,,,,,,,,
+4,curiosity / short,,,,,,,,,,,,
+5,direct role pitch,,,,,,,,,,,,
+6,referral-style,,,,,,,,,,,,
+7,casual,,,,,,,,,,,,
+8,value-prop,,,,,,,,,,,,
+9,question-led,,,,,,,,,,,,
+10,specific achievement,,,,,,,,,,,,
