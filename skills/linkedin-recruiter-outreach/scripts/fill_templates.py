@@ -7,24 +7,28 @@ Usage:
 
 role.json example:
 {
-    "role_title": "Senior Backend Engineer",
-    "company": "Acme",
-    "key_skill": "distributed systems",
-    "skill_2": "Go",
-    "location": "remote",
-    "comp_type": "salary + equity",
-    "hook": "shipped their payments API to 40k merchants last quarter",
+    "role_title": "Trade Operations Manager",
+    "company": "Staking Facilities",
+    "key_skill": "trade lifecycle operations",
+    "skill_2": "SQL and Excel for reporting",
+    "location": "remote within European timezones",
+    "comp_type": "",
+    "hook": "building a proprietary crypto trading desk from scratch",
+    "responsibilities": "own daily reconciliation across venues and custodians, monitor execution in real time, and act as first responder when something breaks",
+    "benefits": "flexible hours, 30 days of paid vacation, and support for career development",
     "achievement": "",
-    "mutual_conn": "",
-    "recruiter_name": "Sam"
+    "mutual_conn": ""
 }
 
 Leave a field as "" (empty string) to skip variants that need it (achievement, mutual_conn),
-or to drop optional clauses (skill_2). Required fields (role_title, company, key_skill) should
-always be filled in, since most variants depend on them.
+or to drop optional clauses (skill_2, comp_type). Required fields (role_title, company,
+key_skill, responsibilities, benefits) should always be filled in, since every variant
+depends on them, per SKILL.md.
 
-This does plain {{placeholder}} substitution and reports the character count of every
-connection note, flagging any that go over LinkedIn's 300-character invite limit.
+These templates have no connection note, each variant is one message Aimfox fires
+automatically once the candidate accepts a blank connection request. This script does
+plain {{placeholder}} substitution and reports a word count for each filled message,
+flagging any that run well past the ~130-word range the templates are written for.
 """
 
 import argparse
@@ -33,11 +37,10 @@ import re
 import sys
 from pathlib import Path
 
-REQUIRED_FIELDS = ["role_title", "company", "key_skill"]
-OPTIONAL_FIELDS = [
-    "skill_2", "location", "comp_type", "hook",
-    "achievement", "mutual_conn", "recruiter_name",
-]
+REQUIRED_FIELDS = ["role_title", "company", "key_skill", "responsibilities", "benefits"]
+OPTIONAL_FIELDS = ["skill_2", "location", "comp_type", "hook", "achievement", "mutual_conn"]
+
+WORD_COUNT_WARN_ABOVE = 160
 
 
 def load_role(path):
@@ -52,12 +55,13 @@ def load_role(path):
     return data
 
 
-def build_skill2_clause(role):
-    return f" and {role['skill_2']}" if role.get("skill_2") else ""
+def build_clauses(role):
+    role["skill_2_clause"] = f" and {role['skill_2']}" if role.get("skill_2") else ""
+    role["comp_clause"] = f", {role['comp_type']}" if role.get("comp_type") else ""
+    return role
 
 
 def fill(text, role):
-    text = text.replace("{{skill_2_clause}}", build_skill2_clause(role))
     # {{first_name}} is intentionally left for per-candidate merge, not filled here.
     for key, value in role.items():
         if key == "first_name":
@@ -67,21 +71,17 @@ def fill(text, role):
 
 
 def extract_variants(template_md):
-    """Split message_templates.md into (heading, connection_note, first_message) tuples."""
+    """Split message_templates.md into (heading, message) pairs, one per variant."""
     blocks = re.split(r"\n---\n", template_md)
     variants = []
     for block in blocks:
         heading_match = re.search(r"^##\s*(Variant.+)$", block, re.MULTILINE)
-        note_match = re.search(
-            r"\*\*Connection note:\*\*\n(.+?)\n\n\*\*First message:\*\*", block, re.DOTALL
-        )
-        msg_match = re.search(r"\*\*First message:\*\*\n(.+?)\s*$", block, re.DOTALL)
-        if heading_match and note_match and msg_match:
-            variants.append((
-                heading_match.group(1).strip(),
-                note_match.group(1).strip(),
-                msg_match.group(1).strip(),
-            ))
+        if not heading_match:
+            continue
+        body = block[heading_match.end():].strip()
+        if not body or body.lower().startswith("## notes"):
+            continue
+        variants.append((heading_match.group(1).strip(), body))
     return variants
 
 
@@ -94,24 +94,36 @@ def main():
     args = parser.parse_args()
 
     role = load_role(args.role_json)
+    role = build_clauses(role)
     template_md = Path(args.templates).read_text()
     variants = extract_variants(template_md)
     if not variants:
         print("Could not parse any variants out of the templates file.", file=sys.stderr)
         sys.exit(1)
 
+    skip_needs = {
+        "achievement": "achievement",
+        "mutual_conn": "mutual_conn",
+    }
+
     lines = []
-    for heading, note, message in variants:
-        filled_note = fill(note, role)
-        filled_message = fill(message, role)
-        char_count = len(filled_note)
-        flag = "  <-- OVER 300 CHAR LIMIT" if char_count > 300 else ""
+    for heading, message in variants:
+        needed = [field for field, key in skip_needs.items() if "{{" + key + "}}" in message]
+        missing = [f for f in needed if not role.get(f)]
+        if missing:
+            lines.append(f"### {heading}")
+            lines.append(f"(skipped, needs real {', '.join(missing)} for this candidate, not filled in)")
+            lines.append("")
+            lines.append("---")
+            lines.append("")
+            continue
+
+        filled = fill(message, role)
+        word_count = len(filled.split())
+        flag = "  <-- longer than the ~130-word target, consider trimming" if word_count > WORD_COUNT_WARN_ABOVE else ""
         lines.append(f"### {heading}")
-        lines.append(f"**Connection note** ({char_count} chars){flag}:")
-        lines.append(filled_note)
-        lines.append("")
-        lines.append("**First message:**")
-        lines.append(filled_message)
+        lines.append(f"({word_count} words{flag})")
+        lines.append(filled)
         lines.append("")
         lines.append("---")
         lines.append("")

@@ -1,11 +1,13 @@
 ---
 name: linkedin-recruiter-outreach
-description: Generate 10 distinct LinkedIn outreach message variants (connection note + first message) for a recruiter sourcing candidates for a specific role, ready to load into Aimfox as an A/B test. Use this whenever the user wants recruiter outreach copy for LinkedIn, wants to pull a role from a job board URL (including talent.superteam.fun/jobs) and turn it into candidate messages, wants to test which LinkedIn message performs best, or wants to log/compare Aimfox campaign results (connection accept rate, reply rate, positive reply rate) across message variants. Trigger even if the user just pastes a job link or a role description and says something like "write outreach for this role" or "help me message candidates for this."
+description: Generate 10 distinct LinkedIn outreach message variants for a recruiter sourcing candidates for a specific role, ready to load into Aimfox as an A/B test. There's no connection note involved, connection requests go out blank and Aimfox fires the message automatically the moment a candidate accepts, so each variant is a single, detailed first message that describes the role, its responsibilities, comp/location, and benefits, and ends by asking if the candidate is interested. Use this whenever the user wants recruiter outreach copy for LinkedIn, wants to pull a role from a job board URL (including talent.superteam.fun/jobs) and turn it into candidate messages, wants to test which LinkedIn message performs best, or wants to log/compare Aimfox campaign results (connection accept rate, reply rate, positive reply rate) across message variants. Trigger even if the user just pastes a job link or a role description and says something like "write outreach for this role" or "help me message candidates for this."
 ---
 
 # LinkedIn Recruiter Outreach
 
-Turn one open role into 10 different, human-sounding LinkedIn outreach variants a recruiter can run as an A/B test in Aimfox, then track which one actually gets replies.
+Turn one open role into 10 different, human-sounding LinkedIn outreach messages a recruiter can run as an A/B test in Aimfox, then track which one actually gets replies.
+
+The workflow here sends a blank connection request (no note), and Aimfox fires the message the instant the candidate accepts. So there's only one piece of copy per variant, and it has to carry the full context on its own: what the role is, what the person would actually be doing, what it pays and where it's based, what they'd get out of it, and a direct ask about their interest.
 
 ## When to use this
 
@@ -20,6 +22,8 @@ If the user gives a URL (especially from `talent.superteam.fun/jobs/...`), fetch
 - 1-2 concrete must-have skills (not a laundry list, pick the ones that actually differentiate a fit candidate)
 - Location / remote setup
 - Comp type: salary, equity, token allocation, or a mix, plus range if listed
+- 2-3 real day-to-day responsibilities, written in plain language, not a bullet dump copy-pasted from the posting
+- 2-3 benefits that would actually matter to a candidate (vacation days, remote flexibility, equity/token upside if not already covered by comp, learning/career support). Skip filler like "fun team" or "great culture"
 - One standout hook: something specific about the company or role a stranger would find worth knowing (funding, live product, user numbers, what the team is actually shipping). Avoid generic mission-statement language ("we're passionate about...") even if the posting uses it, rewrite it as a plain fact.
 
 If the user pastes a job description or types the details directly, extract the same fields from that instead. If something is missing (e.g. no comp listed), leave it out of the messages rather than guessing or writing a placeholder like "[comp]" into the final output.
@@ -28,7 +32,7 @@ If the URL can't be fetched, tell the user and ask them to paste the job descrip
 
 ## Step 2: Fill the 10 templates
 
-Read `references/message_templates.md`. It has 10 templates, each with a different angle (skills match, company hook, casual, direct pitch, question-led, etc). Fill in the `{{placeholders}}` with the real role details from Step 1.
+Read `references/message_templates.md`. It has 10 templates, each with a different angle (skills match, company hook, casual, direct pitch, question-led, etc), each one a single message with no separate connection note. Fill in the `{{placeholders}}` with the real role details from Step 1.
 
 Rules for every message, no exceptions:
 
@@ -36,21 +40,19 @@ Rules for every message, no exceptions:
 - **No recruiter fluff.** Never use words like passionate, rockstar, synergy, circle back, touch base, leverage, excited to connect, thought leader, growth mindset, or "hope this finds you well." If a sentence sounds like it came from a template, rewrite it plainer.
 - **Sound like a person typing a message, not a company sending a blast.** Short sentences. Contractions are fine. No exclamation-point stacking.
 - **Be specific to the role**, not generic. A message that could apply to any job at any company means the extraction in Step 1 didn't go deep enough, go back and find one real detail to anchor it.
-- **Connection note stays under 300 characters** (LinkedIn's hard limit on invite notes). Check the character count before finalizing each one.
+- **Cover the full picture in one message**: what the role is, what they'd actually be doing day to day, comp and location, and what they'd get out of it. Since there's no connection note to warm things up first, the message can't skip straight to a pitch line, it has to stand on its own.
+- **Always end by asking if they're interested**, directly. That's the point of the message, don't soften it into "let me know your thoughts" or drop it.
+- **Keep it to roughly 80-130 words.** Enough to cover everything above in full sentences, not so much that it reads like a job posting got pasted into a DM.
 - Leave `{{first_name}}` as a literal placeholder in the final output (the recruiter fills this per-candidate when sending, or Aimfox merges it automatically), don't guess a name.
-- If a template calls for something you don't have (mutual connection, candidate's specific achievement), either drop that line or note it needs manual personalization per candidate. Don't fabricate a mutual connection or a fake achievement.
+- If a template calls for something you don't have (mutual connection, candidate's specific achievement), either drop that variant for that candidate or note it needs manual personalization per candidate. Don't fabricate a mutual connection or a fake achievement.
 
 ## Step 3: Output format
 
-Present all 10 variants in one place, ready to copy into Aimfox. Use this structure for each:
+Present all 10 variants in one place, ready to copy into Aimfox as the message that fires on connection acceptance. Use this structure for each:
 
 ```
 ### Variant N — [angle name]
-**Connection note** (X chars):
-[text]
-
-**First message** (sent after they accept):
-[text]
+[message text]
 ```
 
 After the 10 variants, remind the user: stagger which variants go to which candidate segment (e.g. split your candidate list roughly evenly across variants, or run 3-4 at a time if the list is small) so the comparison is fair, and keep the role and seniority constant across the test, only the message angle should differ.

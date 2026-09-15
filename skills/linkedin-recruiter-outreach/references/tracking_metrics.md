@@ -10,7 +10,7 @@ Use `assets/metrics_template.csv` as the log. One row per variant per campaign (
 | `variant_angle` | Short label, e.g. "skills match," "casual" | From `message_templates.md` |
 | `role` | Role title + company | The job you're sourcing for |
 | `date_sent` | Date the batch went out | When you launch that variant in Aimfox |
-| `connections_sent` | Invite requests sent with that variant's note | Aimfox campaign export |
+| `connections_sent` | Blank invite requests sent for that variant's candidate segment | Aimfox campaign export |
 | `connections_accepted` | Invites accepted | Aimfox campaign export |
 | `connection_accept_rate` | accepted / sent | Calculated |
 | `messages_sent` | First messages sent (to accepted connections) | Aimfox campaign export |
@@ -23,7 +23,7 @@ Use `assets/metrics_template.csv` as the log. One row per variant per campaign (
 
 ## Pulling from Aimfox
 
-Aimfox's campaign dashboard/export gives you sent, accepted, and reply counts per campaign. If you're running each variant as its own campaign (recommended, keeps the numbers clean), the export maps 1:1 to a row. If you're running multiple variants inside one campaign with manual tagging, you'll need to split the export by which note/message template each contact received before filling the row.
+Aimfox's campaign dashboard/export gives you sent, accepted, and reply counts per campaign. Since connection requests go out blank and the message fires automatically on acceptance, the variant lives entirely in which message template a campaign is set to send. If you're running each variant as its own campaign (recommended, keeps the numbers clean), the export maps 1:1 to a row. If you're running multiple variants inside one campaign, you'll need to split the export by which message template each contact received before filling the row.
 
 ## How to actually compare variants
 
